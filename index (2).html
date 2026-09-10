@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#ec4b79" />
+  <title>Feliz cumpleaños, Isabella ❤️</title>
+  <style>
+    :root { --pink:#ff4f81; --deep:#7b1938; --cream:#fff9ed; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin:0; width:100%; min-height:100%; overflow:hidden; font-family: ui-rounded, "Avenir Next", "Segoe UI", sans-serif; background:#25351f; color:#fff; }
+    body { height:100dvh; }
+    .screen { position:fixed; inset:0; display:none; }
+    .screen.active { display:flex; }
+    .photo-bg { position:absolute; inset:-18px; background-image:linear-gradient(rgba(23,43,21,.23),rgba(23,43,21,.40)), url('image.jpg'); background-position:center; background-size:cover; filter:blur(8px); transform:scale(1.08); }
+    .overlay { position:relative; z-index:1; width:100%; min-height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:28px 20px calc(28px + env(safe-area-inset-bottom)); background:radial-gradient(circle at 50% 35%, rgba(255,255,255,.22), transparent 45%), linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.30)); }
+    .card { width:min(92vw,510px); padding:27px 22px; border:1px solid rgba(255,255,255,.55); border-radius:28px; background:rgba(255,255,255,.18); box-shadow:0 14px 38px rgba(0,0,0,.25); backdrop-filter:blur(7px); }
+    h1 { margin:0 0 14px; font-size:clamp(2rem,8vw,3.4rem); line-height:1.06; text-shadow:0 2px 8px rgba(0,0,0,.25); }
+    p { margin:0; font-size:clamp(1.05rem,4.8vw,1.35rem); line-height:1.45; text-shadow:0 1px 5px rgba(0,0,0,.2); }
+    .tiny { margin-top:14px; font-size:.93rem; opacity:.95; }
+    button { border:0; border-radius:999px; padding:15px 29px; margin-top:22px; color:#fff; font:800 1.1rem ui-rounded, "Avenir Next", sans-serif; letter-spacing:.2px; background:linear-gradient(135deg,#ff638f,#e83068); box-shadow:0 8px 0 #a91644, 0 13px 22px rgba(79,0,23,.35); cursor:pointer; transition:transform .12s; }
+    button:active { transform:translateY(5px); box-shadow:0 3px 0 #a91644, 0 7px 14px rgba(79,0,23,.3); }
+    #game { background:#6e8852; }
+    #game .photo-bg { filter:blur(12px) brightness(.8); }
+    #hud { position:absolute; z-index:4; top:calc(14px + env(safe-area-inset-top)); left:14px; right:14px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    #counter, #hint { padding:9px 13px; border-radius:999px; background:rgba(255,255,255,.78); color:#56213a; box-shadow:0 3px 12px rgba(0,0,0,.16); font-weight:900; }
+    #counter { font-size:1.05rem; }
+    #hint { font-size:.78rem; text-align:right; }
+    #world { position:absolute; inset:0; z-index:2; overflow:hidden; touch-action:none; }
+    #player { position:absolute; z-index:5; width:54px; height:54px; display:grid; place-items:center; font-size:43px; line-height:1; filter:drop-shadow(0 4px 3px rgba(0,0,0,.25)); will-change:transform; user-select:none; }
+    .heart { position:absolute; z-index:3; width:42px; height:42px; display:grid; place-items:center; color:#fff; font-size:35px; line-height:1; filter:drop-shadow(0 3px 3px rgba(84,0,29,.35)); animation:float 1.15s ease-in-out infinite alternate; user-select:none; }
+    .heart::after { content:'✨'; position:absolute; top:-9px; right:-9px; font-size:13px; }
+    @keyframes float { from { transform:translateY(-4px) scale(.96); } to { transform:translateY(5px) scale(1.08); } }
+    #message { position:absolute; z-index:8; left:50%; top:50%; width:min(86vw,420px); transform:translate(-50%,-50%) scale(.7); opacity:0; pointer-events:none; padding:20px 18px; border-radius:23px; color:#742143; background:rgba(255,255,255,.94); box-shadow:0 12px 35px rgba(0,0,0,.25); font-size:clamp(1.25rem,6vw,1.75rem); font-weight:900; text-align:center; transition:opacity .2s, transform .24s cubic-bezier(.2,1.5,.4,1); }
+    #message.show { opacity:1; transform:translate(-50%,-50%) scale(1); }
+    .controls { position:absolute; z-index:7; left:0; right:0; bottom:calc(16px + env(safe-area-inset-bottom)); display:flex; justify-content:space-between; align-items:flex-end; padding:0 18px; pointer-events:none; }
+    .dpad { display:grid; grid-template-columns:50px 50px 50px; grid-template-rows:50px 50px 50px; gap:3px; pointer-events:auto; }
+    .move { margin:0; width:50px; height:50px; padding:0; border-radius:15px; background:rgba(255,255,255,.82); color:#7a2141; box-shadow:0 4px 0 rgba(93,31,54,.45); font-size:23px; }
+    .move:active { transform:translateY(3px); box-shadow:0 1px 0 rgba(93,31,54,.45); }
+    .up { grid-column:2; grid-row:1; } .left { grid-column:1; grid-row:2; } .down { grid-column:2; grid-row:2; } .right { grid-column:3; grid-row:2; }
+    .tap-note { max-width:135px; padding:10px; border-radius:16px; background:rgba(255,255,255,.68); color:#55223a; font-weight:800; font-size:.78rem; line-height:1.25; }
+    #final { background:#1e3522; }
+    #final .photo-bg { inset:0; filter:none; transform:none; background-image:linear-gradient(rgba(20,30,15,.08),rgba(20,30,15,.26)), url('image.jpg'); }
+    #final .overlay { justify-content:flex-end; padding-bottom:calc(44px + env(safe-area-inset-bottom)); background:linear-gradient(180deg,transparent 32%,rgba(14,28,15,.68) 100%); }
+    .final-card { background:rgba(35,53,26,.62); border-color:rgba(255,255,255,.48); }
+    #bigHeart { font-size:clamp(6rem,28vw,10rem); line-height:.85; animation:beat 1s infinite; filter:drop-shadow(0 6px 8px rgba(0,0,0,.36)); }
+    @keyframes beat { 0%,100%{transform:scale(1)} 20%{transform:scale(1.18)} 40%{transform:scale(1)} 60%{transform:scale(1.1)} }
+    #final h1 { font-size:clamp(2rem,8.5vw,3.4rem); margin:12px 0; }
+    #final p { font-size:clamp(1.08rem,5vw,1.4rem); }
+    #confetti { position:fixed; inset:0; z-index:30; pointer-events:none; overflow:hidden; }
+    .piece { position:absolute; top:-20px; width:10px; height:17px; border-radius:2px; animation:fall var(--dur) linear var(--delay) forwards; }
+    @keyframes fall { to { transform:translate(var(--drift),110dvh) rotate(720deg); opacity:.9; } }
+    @media (max-height:650px) { .card { padding:18px; } h1 { font-size:2rem; } .controls { bottom:8px; } .dpad { transform:scale(.85); transform-origin:bottom left; } }
+  </style>
+</head>
+<body>
+  <section id="start" class="screen active" aria-label="Pantalla inicial">
+    <div class="photo-bg"></div>
+    <div class="overlay">
+      <div class="card">
+        <div style="font-size:3.3rem; margin-bottom:8px">🐛💖</div>
+        <h1>Feliz cumpleaños,<br>Isabella ❤️</h1>
+        <p>Ayuda al gusanito a recoger los 19 corazones.</p>
+        <p class="tiny">Usa las flechas o toca cualquier parte de la pantalla para moverlo.</p>
+        <button id="startBtn">Comenzar</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="game" class="screen" aria-label="Juego de corazones">
+    <div class="photo-bg"></div>
+    <div id="world"></div>
+    <div id="hud"><div id="counter">❤️ 0 / 19</div><div id="hint">Recoge todos<br>los corazones</div></div>
+    <div id="message" role="status" aria-live="polite"></div>
+    <div class="controls">
+      <div class="dpad" aria-label="Controles">
+        <button class="move up" data-dx="0" data-dy="-1" aria-label="Arriba">▲</button>
+        <button class="move left" data-dx="-1" data-dy="0" aria-label="Izquierda">◀</button>
+        <button class="move down" data-dx="0" data-dy="1" aria-label="Abajo">▼</button>
+        <button class="move right" data-dx="1" data-dy="0" aria-label="Derecha">▶</button>
+      </div>
+      <div class="tap-note">Toca la pantalla para guiar al gusanito 🐛</div>
+    </div>
+    <div id="player" aria-label="Gusanito">🐛</div>
+  </section>
+
+  <section id="final" class="screen" aria-label="Final">
+    <div class="photo-bg"></div>
+    <div class="overlay">
+      <div class="card final-card">
+        <div id="bigHeart">❤️</div>
+        <h1>🎉 ¡Feliz cumpleaños,<br>papayita! ❤️</h1>
+        <p>Que Dios te permita cumplir muchos más.</p>
+        <p style="margin-top:16px">Con amor,<br><strong>Martin ❤️</strong></p>
+      </div>
+    </div>
+  </section>
+  <div id="confetti"></div>
+
+  <script>
+    const phrases = [
+      'Tus cachetes', 'Tus ojitos', 'Tus labios', 'Tu sonrisa', 'Tu risa',
+      'Tus abrazos', 'Tus besitos', 'Tus caricias', 'Tu ternura', 'Tu suavidad',
+      'Tus berrinches', 'Tus palabras bonitas', 'El cariño que me das',
+      'El apoyo que me das', 'La motivación que me das', 'Tu cuerpo',
+      'Tu inocencia', 'Tus biscuits', 'Tu corazón'
+    ];
+    const positions = [
+      [12,22],[32,15],[55,25],[78,16],[88,37],[69,48],[45,42],[22,49],[10,67],[31,65],
+      [54,60],[80,65],[92,82],[66,82],[42,78],[19,86],[6,42],[91,55],[52,14]
+    ];
+    const player = document.getElementById('player');
+    const world = document.getElementById('world');
+    const message = document.getElementById('message');
+    const counter = document.getElementById('counter');
+    const game = document.getElementById('game');
+    let x = 50, y = 82, collected = 0, playing = false, msgTimer;
+    let hearts = [];
+
+    function switchTo(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+    function drawPlayer() {
+      player.style.left = `calc(${x}% - 27px)`;
+      player.style.top = `calc(${y}% - 27px)`;
+    }
+    function buildHearts() {
+      world.querySelectorAll('.heart').forEach(el => el.remove());
+      hearts = positions.map((p, i) => {
+        const el = document.createElement('div');
+        el.className = 'heart';
+        el.textContent = '❤️';
+        el.style.left = `calc(${p[0]}% - 21px)`;
+        el.style.top = `calc(${p[1]}% - 21px)`;
+        el.style.animationDelay = `${(i % 6) * .13}s`;
+        world.appendChild(el);
+        return { el, x:p[0], y:p[1], text:phrases[i], got:false };
+      });
+    }
+    function showMessage(text) {
+      message.textContent = '❤️ ' + text + ' ❤️';
+      message.classList.add('show');
+      clearTimeout(msgTimer);
+      msgTimer = setTimeout(() => message.classList.remove('show'), 1150);
+    }
+    function checkCollection() {
+      hearts.forEach(h => {
+        if (!h.got && Math.hypot(x - h.x, y - h.y) < 7.3) {
+          h.got = true;
+          h.el.style.transition = 'transform .25s, opacity .25s';
+          h.el.style.transform = 'scale(1.9)';
+          h.el.style.opacity = '0';
+          setTimeout(() => h.el.remove(), 260);
+          collected++;
+          counter.textContent = `❤️ ${collected} / 19`;
+          showMessage(h.text);
+          if (navigator.vibrate) navigator.vibrate(35);
+          if (collected === 19) setTimeout(finish, 1250);
+        }
+      });
+    }
+    function move(dx, dy) {
+      if (!playing) return;
+      x = Math.max(4, Math.min(96, x + dx));
+      y = Math.max(12, Math.min(91, y + dy));
+      drawPlayer(); checkCollection();
+    }
+    function startGame() {
+      collected = 0; x = 50; y = 82; playing = true;
+      counter.textContent = '❤️ 0 / 19';
+      buildHearts(); drawPlayer(); switchTo('game');
+    }
+    function finish() {
+      playing = false;
+      message.classList.remove('show');
+      launchConfetti();
+      switchTo('final');
+    }
+    function launchConfetti() {
+      const box = document.getElementById('confetti');
+      box.innerHTML = '';
+      const colors = ['#ff4f81','#ffd84c','#7be0a7','#66c6ff','#c98aff','#fff'];
+      for (let i=0; i<145; i++) {
+        const p = document.createElement('i');
+        p.className = 'piece';
+        p.style.left = Math.random()*100 + 'vw';
+        p.style.background = colors[i % colors.length];
+        p.style.setProperty('--dur', (2.3 + Math.random()*2.4) + 's');
+        p.style.setProperty('--delay', (Math.random()*.7) + 's');
+        p.style.setProperty('--drift', ((Math.random()-.5)*36) + 'vw');
+        box.appendChild(p);
+      }
+    }
+    document.getElementById('startBtn').addEventListener('click', startGame);
+    document.querySelectorAll('.move').forEach(btn => {
+      const go = e => { e.preventDefault(); move(Number(btn.dataset.dx)*4.1, Number(btn.dataset.dy)*4.1); };
+      btn.addEventListener('click', go);
+      btn.addEventListener('touchstart', go, {passive:false});
+    });
+    window.addEventListener('keydown', e => {
+      const dirs = {ArrowUp:[0,-1], ArrowDown:[0,1], ArrowLeft:[-1,0], ArrowRight:[1,0], w:[0,-1], s:[0,1], a:[-1,0], d:[1,0]};
+      if (dirs[e.key]) { e.preventDefault(); move(dirs[e.key][0]*4.1, dirs[e.key][1]*4.1); }
+    });
+    world.addEventListener('pointerdown', e => {
+      if (!playing) return;
+      const r = world.getBoundingClientRect();
+      const tx = ((e.clientX-r.left)/r.width)*100;
+      const ty = ((e.clientY-r.top)/r.height)*100;
+      const dx = tx-x, dy=ty-y, length=Math.hypot(dx,dy) || 1;
+      move(dx/length*6.2, dy/length*6.2);
+    });
+  </script>
+</body>
+</html>
